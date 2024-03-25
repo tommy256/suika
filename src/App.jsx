@@ -45,7 +45,7 @@ function App() {
     Events.on(engine.current, "collisionStart", collisionHandler);
 
     // 重力を変更
-    engine.current.world.gravity.y = 0.5;
+    engine.current.world.gravity.y = 1;
 
     return () => {
       Render.stop(render);
