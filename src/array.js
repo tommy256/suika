@@ -1,4 +1,4 @@
-export const fruits: string[] = [
+export const fruits = [
   "orange",
   "apple",
   "pear",
@@ -8,7 +8,7 @@ export const fruits: string[] = [
   "suika",
 ];
 
-export const fruitColors: { [key: string]: string } = {
+export const fruitColors = {
   orange: "#FF6B00",
   apple: "#FF0000",
   pear: "#FFF06B",
