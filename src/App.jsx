@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Engine, Render, Bodies, World, Events } from "matter-js";
 import { fruits, fruitColors } from "./array";
+import "./App.css";
 
 function App() {
   const scene = useRef();
@@ -42,6 +43,9 @@ function App() {
     };
 
     Events.on(engine.current, "collisionStart", collisionHandler);
+
+    // 重力を変更
+    engine.current.world.gravity.y = 0.3;
 
     return () => {
       Render.stop(render);
@@ -101,10 +105,14 @@ function App() {
   return (
     <div
       onMouseDown={() => {
-        addCircle(200, 200);
+        addCircle(0, 200);
       }}
     >
       <div ref={scene} style={{ width: "100%", height: "100%" }} />
+      <div className="titles">
+        <h1>カススイカゲーム</h1>
+        <p>画面をクリックしてフルーツを落とす</p>
+      </div>
     </div>
   );
 }
