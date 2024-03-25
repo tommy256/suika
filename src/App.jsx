@@ -1,16 +1,14 @@
 import { useEffect, useRef } from "react";
-import { Engine, Render, Bodies, World } from "matter-js";
+import { Engine, Render, Bodies, World, Events } from "matter-js";
 
 function App() {
   const scene = useRef();
-  // const isPressed = useRef(false);
   const engine = useRef(Engine.create());
 
   useEffect(() => {
     const cw = document.body.clientWidth;
     const ch = document.body.clientHeight;
 
-    // 描画エリアの設定
     const render = Render.create({
       element: scene.current,
       engine: engine.current,
@@ -22,7 +20,6 @@ function App() {
       },
     });
 
-    // 画面の外周に壁を追加
     World.add(engine.current.world, [
       Bodies.rectangle(cw / 2, -10, cw, 20, { isStatic: true }),
       Bodies.rectangle(-10, ch / 2, 20, ch, { isStatic: true }),
@@ -30,9 +27,20 @@ function App() {
       Bodies.rectangle(cw + 10, ch / 2, 20, ch, { isStatic: true }),
     ]);
 
-    // エンジンを実行
     Engine.run(engine.current);
     Render.run(render);
+
+    // 衝突時のイベントを追加
+    const collisionHandler = (event) => {
+      const pairs = event.pairs;
+      pairs.forEach((pair) => {
+        if (pair.bodyA.label === "orange" && pair.bodyB.label === "orange") {
+          mergeBodies(pair);
+        }
+      });
+    };
+
+    Events.on(engine.current, "collisionStart", collisionHandler);
 
     return () => {
       Render.stop(render);
@@ -42,21 +50,39 @@ function App() {
       render.canvas = null;
       render.context = null;
       render.textures = {};
+
+      // クリーンアップ時にイベントリスナーを削除
+      Events.off(engine.current, "collisionStart", collisionHandler);
     };
   }, []);
 
-  // マウスを押したら円を追加
   const addCircle = (x, y) => {
-    const circle = Bodies.circle(x, y, 20, {
-      restitution: 0.8,
-      friction: 0.01,
-      density: 0.001,
+    const orange = Bodies.circle(x, y, 20, {
+      density: 0.0005,
       render: {
         fillStyle: "#ff8800",
       },
+      label: "orange",
     });
-    World.add(engine.current.world, circle);
+    World.add(engine.current.world, orange);
   };
+
+  function mergeBodies(pair) {
+    const bodyA = pair.bodyA;
+    const bodyB = pair.bodyB;
+
+    const newX = (bodyA.position.x + bodyB.position.x) / 2;
+    const newY = (bodyA.position.y + bodyB.position.y) / 2;
+    const newRadius = Math.sqrt(
+      bodyA.circleRadius * bodyA.circleRadius +
+        bodyB.circleRadius * bodyB.circleRadius
+    );
+
+    World.remove(engine.current.world, [bodyA, bodyB]);
+
+    const newBody = Bodies.circle(newX, newY, newRadius);
+    World.add(engine.current.world, newBody);
+  }
 
   return (
     <div
