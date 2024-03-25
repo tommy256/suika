@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Engine, Render, Bodies, World, Events } from "matter-js";
+import { fruits, fruitColors } from "./array";
 
 function App() {
   const scene = useRef();
@@ -34,8 +35,8 @@ function App() {
     const collisionHandler = (event) => {
       const pairs = event.pairs;
       pairs.forEach((pair) => {
-        if (pair.bodyA.label === "orange" && pair.bodyB.label === "orange") {
-          mergeBodies(pair);
+        if (pair.bodyA.label === pair.bodyB.label) {
+          mergeBodies(pair, pair.bodyA.label);
         }
       });
     };
@@ -60,16 +61,23 @@ function App() {
     const orange = Bodies.circle(x, y, 20, {
       density: 0.0005,
       render: {
-        fillStyle: "#ff8800",
+        fillStyle: fruitColors.orange,
       },
       label: "orange",
     });
     World.add(engine.current.world, orange);
   };
 
-  function mergeBodies(pair) {
+  function mergeBodies(pair, fruit) {
+    if (fruit === "suika") {
+      return World.remove(engine.current.world, [pair.bodyA, pair.bodyB]);
+    }
+
     const bodyA = pair.bodyA;
     const bodyB = pair.bodyB;
+
+    const fruitIndex = fruits.indexOf(fruit);
+    const nextFruit = fruits[fruitIndex + 1];
 
     const newX = (bodyA.position.x + bodyB.position.x) / 2;
     const newY = (bodyA.position.y + bodyB.position.y) / 2;
@@ -80,7 +88,13 @@ function App() {
 
     World.remove(engine.current.world, [bodyA, bodyB]);
 
-    const newBody = Bodies.circle(newX, newY, newRadius);
+    const newBody = Bodies.circle(newX, newY, newRadius, {
+      density: 0.0005,
+      render: {
+        fillStyle: fruitColors[nextFruit],
+      },
+      label: nextFruit,
+    });
     World.add(engine.current.world, newBody);
   }
 
